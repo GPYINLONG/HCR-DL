@@ -22,6 +22,7 @@ class MLP(nn.Module):
         )
         self.output_layer = nn.Sequential(
             nn.Linear(256, 10),
+            nn.Softmax()
         )
 
     def forward(self, x):

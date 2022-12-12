@@ -52,12 +52,13 @@ def train_val_shuffle_split(data_root: str, list_fn: str, train_ratio=0.7, save_
 
 
 class MnistDataset(Dataset):
-    def __init__(self, root: str, data_list: str, transform=None):
+    def __init__(self, root: str, data_list: str, transform=None, label_transform=None):
         """
         按照数据列表读取图片并存储是否执行变换信息
         :param root: MNIST数据集根目录
         :param data_list: 传入数据列表的地址
         :param transform: 是否对图片进行变换，传入变换函数
+        :param label_transform: 是否对标签进行变换，传入变换函数
         """
         images = []
         with open(data_list) as f:
@@ -67,6 +68,7 @@ class MnistDataset(Dataset):
         self.root = root
         self.images = images
         self.transform = transform
+        self.label_transform = label_transform
 
     def __getitem__(self, index):
         fn, label = self.images[index]
@@ -74,6 +76,8 @@ class MnistDataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
         img = img.resize((28, 28))
+        if self.label_transform is not None:
+            label = self.label_transform(label)
         return img, label
 
     def __len__(self):
