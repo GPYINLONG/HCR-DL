@@ -13,6 +13,7 @@ import argparse
 import numpy as np
 import datetime
 from pathlib import Path
+import dataset
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
@@ -36,11 +37,12 @@ def parse_args():
     parser.add_argument('--model', choices=['MiniVGG', 'MLP'], default='MLP', help='从MiniVGG和MLP中选择你所希望使用的网络模型（默认MLP）')
     parser.add_argument('--epoch', type=int, default=250, help='输入训练次数（默认250）')
     parser.add_argument('--gpu', type=str, default='0', help='选择所使用的gpu（默认GPU 0）')
-    parser.add_argument('--cpu', action='store_true', help='是否使用cpu训练（默认否，不需传参）')
+    parser.add_argument('--cpu', action='store_true', default=False,help='是否使用cpu训练（默认否，不需传参）')
     parser.add_argument('--root', type=str, required=True, help='传入数据集根目录')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='初始学习率')
     parser.add_argument('--batch_size', type=int, default=16, help='设置batch大小')
-    parser.add_argument('--save_name', type=str, default=None, help='模型文件与日志保存名')
+    parser.add_argument('--save_name', type=str, default=None, help='模型文件与日志存放文件夹名')
+    parser.add_argument('--split_ratio', type=float, default=0.7, help='训练集/(训练集+验证集)的比例')
 
     return parser.parse_args()
 
@@ -69,5 +71,23 @@ def main(args):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y/%m/%d %H:%M:%S')
-    file_handler =
+    file_handler = logging.FileHandler('%s/%s.txt' % (log_dir, args.model))
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    def log_string(info):
+        logger.info(info)
+        print(info)
+
+    log_string('PARAMETER:')
+    log_string(args)
+
+    """Dataset与Dataloader"""
+    list_name = 'data_list'
+    train_list, test_list = dataset.create_data_list(args.root, list_name)
+    train_list, val_list = dataset.train_val_shuffle_split(train_list, train_ratio=args.split_ratio)
+    mnist_dataset = dataset.MnistDataset(args.root, data_list=train_list, )
+
+
 
