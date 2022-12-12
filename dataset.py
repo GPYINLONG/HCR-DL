@@ -31,7 +31,7 @@ def create_data_list(data_root: str, save_fn='datalist'):
     return datalist_train, datalist_test
 
 
-def train_val_shuffle_split(datalist: str, train_ratio=0.7, save_fn='data', dir_name='train_val_split'):
+def train_val_shuffle_split(datalist: str, train_ratio: float, save_fn='data', dir_name='train_val_split'):
     """
     对create_data_list函数生成的训练数据列表按比例随机拆分为训练集和验证集
     :param datalist: 要拆分的训练集列表地址
