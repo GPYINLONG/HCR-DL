@@ -158,9 +158,9 @@ def main(args):
             optimizer.step()
 
         scheduler.step()
-        train_instance_acc = np.mean(train_acc)
+        train_instance_acc = np.mean(train_acc).data
         global_train_loss.append(train_loss)
-        log_string('第%d个epoch训练loss：%.6f，Accuracy：%.3f' % (start_epoch + 1, train_loss, train_instance_acc))
+        log_string('第%d个epoch训练loss：%.6f，Accuracy：%.5f' % (start_epoch + 1, train_loss, train_instance_acc))
 
 
         global_epoch += 1
