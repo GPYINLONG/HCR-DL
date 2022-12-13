@@ -7,7 +7,7 @@
 from torch import nn
 
 
-class MLP(nn.Module):
+class MyModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.input_layer = nn.Sequential(

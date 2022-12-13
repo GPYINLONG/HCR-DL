@@ -10,25 +10,29 @@ import random
 from PIL import Image
 
 
-def create_data_list(data_root: str, save_fn='datalist'):
+def create_data_list(data_root: str, train=True, save_fn='datalist'):
     """
     在数据集根目录生成训练集和测试集数据读取列表，要求MNIST数据集，存储的为图像的相对地址（相对数据集根目录）和标签
     :param data_root: MNIST数据集根目录
+    :param train: true为训练集，false为测试集，设置以分别生成训练集和测试集
     :param save_fn: 列表名
-    :return: 训练集列表地址, 测试集列表地址
+    :return: 列表地址
     """
-    datalist_train = data_root + '\\' + save_fn + '_train.txt'
-    with open(datalist_train, 'wt') as f_train:
-        train_dir = os.path.join(data_root, 'train_images')
-        for label in os.listdir(train_dir):
-            for image_name in os.listdir(os.path.join(train_dir, label)):
-                f_train.write('%s %s\n' % ('train_images\\'+label+'\\'+image_name, label))
-    datalist_test = data_root + '\\' + save_fn + '_test.txt'
-    with open(datalist_test, 'wt') as f_test:
-        test_dir = os.path.join(data_root, 'test_images')
-        for image_name in os.listdir(test_dir):
-            f_test.write('%s %s\n' % ('test_images\\'+image_name, image_name[0]))
-    return datalist_train, datalist_test
+    if train:
+        datalist_train = data_root + '\\' + save_fn + '_train.txt'
+        with open(datalist_train, 'wt') as f_train:
+            train_dir = os.path.join(data_root, 'train_images')
+            for label in os.listdir(train_dir):
+                for image_name in os.listdir(os.path.join(train_dir, label)):
+                    f_train.write('%s %s\n' % ('train_images\\'+label+'\\'+image_name, label))
+        return datalist_train
+    else:
+        datalist_test = data_root + '\\' + save_fn + '_test.txt'
+        with open(datalist_test, 'wt') as f_test:
+            test_dir = os.path.join(data_root, 'test_images')
+            for image_name in os.listdir(test_dir):
+                f_test.write('%s %s\n' % ('test_images\\'+image_name, image_name[0]))
+        return datalist_test
 
 
 def train_val_shuffle_split(datalist: str, train_ratio: float, save_fn='data', dir_name='train_val_split'):

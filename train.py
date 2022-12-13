@@ -8,6 +8,8 @@ import logging
 import torch
 import torch.nn.functional as F
 import importlib
+from torchvision import transforms
+from torch.utils.data import DataLoader
 import os
 import argparse
 import numpy as np
@@ -42,7 +44,7 @@ def parse_args():
     parser.add_argument('--learning_rate', type=float, default=0.001, help='初始学习率')
     parser.add_argument('--batch_size', type=int, default=16, help='设置batch大小')
     parser.add_argument('--save_name', type=str, default=None, help='模型文件与日志存放文件夹名')
-    parser.add_argument('--split_ratio', type=float, default=0.7, help='训练集/(训练集+验证集)的比例')
+    parser.add_argument('--split_ratio', type=float, default=0.8, help='训练集/(训练集+验证集)的比例')
 
     return parser.parse_args()
 
@@ -58,10 +60,10 @@ def main(args):
         save_dir = save_dir.joinpath('MLP')
     else:
         save_dir = save_dir.joinpath('MiniVGG')
-    if args.log_name is None:
+    if args.save_name is None:
         save_dir = save_dir.joinpath(time_log)
     else:
-        save_dir = save_dir.joinpath(args.log_name)
+        save_dir = save_dir.joinpath(args.save_name)
     checkpoints_dir = save_dir.joinpath('checkpoints')
     checkpoints_dir.mkdir(exist_ok=True)
     log_dir = save_dir.joinpath('logs')
@@ -80,14 +82,48 @@ def main(args):
         logger.info(info)
         print(info)
 
-    log_string('PARAMETER:')
+    log_string('参数：')
     log_string(args)
 
     """Dataset与Dataloader"""
-    list_name = 'data_list'
-    train_list, test_list = dataset.create_data_list(args.root, list_name)
+    train_list = dataset.create_data_list(args.root, train=True)
     train_list, val_list = dataset.train_val_shuffle_split(train_list, train_ratio=args.split_ratio)
-    mnist_dataset = dataset.MnistDataset(args.root, data_list=train_list, )
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.RandomCrop(24),
+        transforms.ColorJitter(0.5, 0.5, 0.5, 0.5)
+    ])
+    train_data = dataset.MnistDataset(args.root, train_list, transform=transform, label_transform=to_categorical)
+    val_data = dataset.MnistDataset(args.root, val_list, transform=transforms.ToTensor(), label_transform=to_categorical)
+    train_loader = DataLoader(dataset=train_data, batch_size=args.batch_size, shuffle=True)
+    val_loader = DataLoader(dataset=val_data, batch_size=args.batch_size)
 
+    log_string('训练集图片数量：%d' % len(train_data))
+    log_string('验证集图片数量：%d' % len(val_data))
+
+    """加载模型"""
+    MODEL = importlib.import_module(args.model)
+    model = MODEL.MyModel()
+    if not args.cpu:
+        model.cuda()
+        log_string('使用gpu训练......')
+
+    """继续训练"""
+    try:
+        checkpoint = torch.load(str(save_dir) + '\\checkpoints\\best_model.pth')
+        start_epoch = checkpoint['epoch']
+        model.load_state_dict(checkpoint['model_state_dict'])
+        log_string('使用预训练模型继续训练......')
+    except:
+        start_epoch = 0
+        log_string(args.save_name + '下未检测到已存在模型，进行新的训练')
+
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=args.learning_rate,
+        betas=(0.9, 0.999),
+        eps=1e-08,
+        weight_decay=1e-04
+    )
 
 
