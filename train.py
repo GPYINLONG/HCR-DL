@@ -16,6 +16,7 @@ import numpy as np
 import datetime
 from pathlib import Path
 import dataset
+import tqdm
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
@@ -41,7 +42,7 @@ def parse_args():
     parser.add_argument('--gpu', type=str, default='0', help='选择所使用的gpu（默认GPU 0）')
     parser.add_argument('--cpu', action='store_true', default=False,help='是否使用cpu训练（默认否，不需传参）')
     parser.add_argument('--root', type=str, required=True, help='传入数据集根目录')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='初始学习率')
+    parser.add_argument('--learning_rate', type=float, default=0.01, help='初始学习率')
     parser.add_argument('--batch_size', type=int, default=16, help='设置batch大小')
     parser.add_argument('--save_name', type=str, default=None, help='模型文件与日志存放文件夹名')
     parser.add_argument('--split_ratio', type=float, default=0.8, help='训练集/(训练集+验证集)的比例')
@@ -123,7 +124,43 @@ def main(args):
         lr=args.learning_rate,
         betas=(0.9, 0.999),
         eps=1e-08,
-        weight_decay=1e-04
+        weight_decay=1e-03
     )
 
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [80, 150], 0.1)
 
+    loss_func = torch.nn.CrossEntropyLoss()
+
+    best_val_acc = 0
+    global_epoch = 0
+    global_train_loss = []
+    global_val_loss = []
+    for epoch in range(start_epoch, args.epoch):
+        train_acc = []
+        train_loss = 0
+        log_string('Epoch %d (%d/%s)' % (global_epoch + 1, epoch + 1, args.epoch))
+        model.train()
+        for batch, (batch_x, batch_y) in tqdm(enumerate(train_loader), total=len(train_loader), smoothing=0.9):
+            if not args.cpu:
+                batch_x = batch_x.float().cuda()
+                batch_y = batch_y.float().cuda()
+
+            out = model(batch_x)
+
+            pred = torch.max(out, 1)[1]
+            num_correct = pred.eq(batch_y.data).cpu().sum()
+            train_acc.append(num_correct / args.batch_size)
+
+            loss = loss_func(out, batch_y)
+            train_loss += loss.item()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        scheduler.step()
+        train_instance_acc = np.mean(train_acc)
+        global_train_loss.append(train_loss)
+        log_string('第%d个epoch训练loss：%.6f，Accuracy：%.3f' % (start_epoch + 1, train_loss, train_instance_acc))
+
+
+        global_epoch += 1
