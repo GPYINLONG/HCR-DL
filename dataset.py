@@ -5,9 +5,11 @@
 """
 
 import os
+
+import torch
 from torch.utils.data import Dataset
 import random
-from PIL import Image
+import cv2
 
 
 def create_data_list(data_root: str, train=True, save_fn='datalist'):
@@ -47,7 +49,7 @@ def train_val_shuffle_split(datalist: str, train_ratio: float, save_fn='data', d
     with open(datalist) as f:
         data = f.readlines()
     random.shuffle(data)
-    train_num = train_ratio * len(data)
+    train_num = int(train_ratio * len(data))
     list_dir = os.path.dirname(datalist)
     if not os.path.exists(list_dir + '\\' + dir_name):
         os.mkdir(list_dir + '\\' + dir_name)
@@ -81,12 +83,13 @@ class MnistDataset(Dataset):
 
     def __getitem__(self, index):
         fn, label = self.images[index]
-        img = Image.open(self.root + '\\' + fn)
+        img = cv2.imread(self.root + '\\' + fn)
         if self.transform is not None:
             img = self.transform(img)
-        img = img.resize((28, 28))
+        label = torch.Tensor([label])
         if self.label_transform is not None:
             label = self.label_transform(label)
+            label = label.view(-1)
         return img, label
 
     def __len__(self):

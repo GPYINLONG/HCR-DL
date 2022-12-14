@@ -17,21 +17,21 @@ class MyModel(nn.Module):
             nn.MaxPool2d(2, 2)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(3, 128, 3, padding=1),
+            nn.Conv2d(64, 128, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(3, 256, 3, padding=1),
+            nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(3, 256, 3, padding=1),
+            nn.Conv2d(256, 256, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(3, 512, 3, padding=1),
+            nn.Conv2d(256, 512, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(3, 512, 3, padding=1),
+            nn.Conv2d(512, 512, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
@@ -41,11 +41,11 @@ class MyModel(nn.Module):
         )
         self.fc2 = nn.Sequential(
             nn.Linear(1024, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
 
     def forward(self, x):
-        F.upsample(x, 112)
+        x = F.interpolate(x, scale_factor=4)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
