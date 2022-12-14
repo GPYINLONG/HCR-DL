@@ -5,6 +5,7 @@
 """
 
 from torch import nn
+from torchsummary import summary
 
 
 class MyModel(nn.Module):
@@ -33,3 +34,8 @@ class MyModel(nn.Module):
 
         return x
 
+
+if __name__ == '__main__':
+    model = MyModel()
+    model.cuda()
+    summary(model, (3, 28, 28))

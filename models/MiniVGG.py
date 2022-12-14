@@ -6,6 +6,7 @@
 
 from torch import nn
 import torch.nn.functional as F
+from torchsummary import summary
 
 
 class MyModel(nn.Module):
@@ -57,3 +58,7 @@ class MyModel(nn.Module):
         return x
 
 
+if __name__ == '__main__':
+    model = MyModel()
+    model.cuda()  # 记得加，不然下面summary默认传入cuda，会与cpu不匹配
+    summary(model, (3, 28, 28))
