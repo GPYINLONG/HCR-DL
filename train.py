@@ -72,7 +72,7 @@ def main(args):
     log_dir.mkdir(exist_ok=True, parents=True)
 
     """保存日志"""
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('TRAIN')
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y/%m/%d %H:%M:%S')
     file_handler = logging.FileHandler('%s/%s.txt' % (log_dir, args.model))
