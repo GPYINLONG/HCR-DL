@@ -39,7 +39,7 @@ def to_categorical(y, num_classes=10):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', choices=['MiniVGG', 'MLP'], default='MLP', help='从MiniVGG和MLP中选择你所希望使用的网络模型（默认MLP）')
-    parser.add_argument('--epoch', type=int, default=250, help='输入训练次数（默认250）')
+    parser.add_argument('--epoch', type=int, default=50, help='输入训练次数（默认50）')
     parser.add_argument('--gpu', type=str, default='0', help='选择所使用的gpu（默认GPU 0）')
     parser.add_argument('--cpu', action='store_true', default=False, help='是否使用cpu训练（默认否，不需传参）')
     parser.add_argument('--root', type=str, required=True, help='传入数据集根目录')
